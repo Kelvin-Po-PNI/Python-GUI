@@ -27,25 +27,6 @@ class goldilocks_control:
     DEBUG = True
     stop_requested = False
 
-    # ==== find COM port for arduino ====
-    ports = list(serial.tools.list_ports.grep("arduino"))
-    #print(ports)
-
-    if len(ports) == 1:
-        print("Arduino found.")
-    else:
-        print("Arduino not found or too many of them.")
-        print("Check Arduino connection and whether drivers are installed.")
-        sys.exit()
-
-    # connect to com port
-    arduinoPort = ports[0]
-    ser = serial.Serial(arduinoPort[0], timeout = 0.1, baudrate = baudrate)
-    #print(ser)
-    print ("connected to arduino at " + str(arduinoPort))
-    #sleep for 2 seconds
-    time.sleep(2)
-
     #constructor
     def __init__(self):
         # ==== syringe info ====
@@ -53,6 +34,7 @@ class goldilocks_control:
         self.flow_rates = [] # mL/min
         self.vol_to_dispense = []
         self.formulation_times = [] #calculate based on flow_rate and vol_to_dispense to obtain formulation time in seconds
+        #self.initFlag = False connect to arduino flag
 
     def get_formulation_time(self, flow_rate, vol_to_dispense):
         """returns the formulation time in seconds given flow rate and volume to dispense"""
@@ -237,7 +219,7 @@ class goldilocks_control:
     #link with GUI button
     def request_stop(self):
         global stop_requested
-        stop_requested = true
+        stop_requested = True
         return
 
     def power_up(self):
@@ -538,11 +520,11 @@ class goldilocks_control:
 
     # ==== syringe pump parameters ====
 
-    def syringe_pump_I(self):
+    def syringe_pump_I(self, size, rate, vol):
         print("SYRINGE PUMP I")
-        syringe_size1 = input("syringe size (mL): ")
-        flow_rate1 = input("flow rate (mL/min): ")
-        vol_to_dispense1 = input("volume to dispense (mL): ")
+        syringe_size1 = size #input("syringe size (mL): ")
+        flow_rate1 = rate #input("flow rate (mL/min): ")
+        vol_to_dispense1 = vol #input("volume to dispense (mL): ")
 
         self.syringe_volumes.append(syringe_size1)
         self.flow_rates.append(flow_rate1)
@@ -575,36 +557,71 @@ class goldilocks_control:
 #        2 syringe pumps = addresses 1 and 2 (not 1 and 3 or 2 and 3)
 #        3 syringe pumps = addresses 1, 2, 3
 
+
+################################## put in function in a separate init function to deal with arduino first. Do that and the GUI should pop up
+# beginning of testing: if not initialized, begin with this
+
+
+# def initArduino(self):
+    # ==== find COM port for arduino ====
+    ports = list(serial.tools.list_ports.grep("arduino"))
+    #print(ports)
+
+    if len(ports) == 1:
+        print("Arduino found.")
+    else:
+        print("Arduino not found or too many of them.")
+        print("Check Arduino connection and whether drivers are installed.")
+        sys.exit()
+
+    # connect to com port
+    arduinoPort = ports[0]
+    ser = serial.Serial(arduinoPort[0], timeout = 0.1, baudrate = baudrate)
+    #print(ser)
+    print ("connected to arduino at " + str(arduinoPort))
+    #sleep for 2 seconds
+    time.sleep(2)
+##################################
+
+
+
+####################################All this goes in the init/begin testing function
+#if (not initialized):
+    #self.init()
+    #self.initFlag = True
+
+
+
 gold = goldilocks_control()
 
-rehome = input("Re-home motors? y/n: ")
-if (rehome == "y" or rehome == "yes" or rehome == "Yes" or rehome == "YES"):
-    gold.start_up()
-    time.sleep(0.1)
-    gold.stop_motor()
-    time.sleep(0.1)
-    gold.power_up()
-    time.sleep(1)
-    gold.find_home()
+# rehome = input("Re-home motors? y/n: ")
+# if (rehome == "y" or rehome == "yes" or rehome == "Yes" or rehome == "YES"):
+#     gold.start_up()
+#     time.sleep(0.1)
+#     gold.stop_motor()
+#     time.sleep(0.1)
+#     gold.power_up()
+#     time.sleep(1)
+#     gold.find_home()
 
-print("==== Goldilocks Syringe Pumps ====")
-num_syringe = input("number of syringe pumps (1, 2, or 3), or 0 to exit: ")
+# print("==== Goldilocks Syringe Pumps ====")
+# num_syringe = input("number of syringe pumps (1, 2, or 3), or 0 to exit: ")
 
-if (num_syringe == "1"):
-    gold.syringe_pump_I()
-elif(num_syringe == "2"):
-    gold.syringe_pump_I()
-    gold.syringe_pump_II()
-elif(num_syringe == "3"):
-    gold.syringe_pump_I()
-    gold.syringe_pump_II()
-    gold.syringe_pump_III()
-elif(num_syringe == "0"):
-    sys.exit()
+# if (num_syringe == "1"):
+#     gold.syringe_pump_I()
+# elif(num_syringe == "2"):
+#     gold.syringe_pump_I()
+#     gold.syringe_pump_II()
+# elif(num_syringe == "3"):
+#     gold.syringe_pump_I()
+#     gold.syringe_pump_II()
+#     gold.syringe_pump_III()
+# elif(num_syringe == "0"):
+#     sys.exit()
 
 if(gold.DEBUG):
     print(gold.formulation_times)
-
+#######################################################################################
 #pressure_file_name = input("Please enter file name: ")
 # material_1 = input("Material 1: ")
 # material_2 = input("Material 2: ")
@@ -612,6 +629,6 @@ if(gold.DEBUG):
 # gold.stop_motor()
 # time.sleep(1)
 
-gold.main()
-time.sleep(1)
-gold.find_home()
+# gold.main()
+# time.sleep(1)
+# gold.find_home()

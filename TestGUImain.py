@@ -1,13 +1,15 @@
 from tkinter import *
 # import tkinter
 import cv2
+import time
 from PIL import Image, ImageTk
 from collections import deque
 import WebcamExample as wc
 import _thread as thread
-# import goldilocksControlThreePumps as Goldilocks
+# import goldilocksControlThreePumpsGUI as Goldilocks
 
-
+num_syringe = 0
+stop_pressed = False
 class mainGUI:
 	def __init__(self, master):
 		self.master = master
@@ -140,6 +142,13 @@ class mainGUI:
 
 	def onHomePress(self):
 		print("Homing")
+		Goldilocks.gold.start_up()
+		time.sleep(0.1)
+		Goldilocks.gold.stop_motor()
+		time.sleep(0.1)
+		Goldilocks.gold.power_up()
+		time.sleep(0.1)
+		Goldilocks.gold.find_home()
 		#run homing here
 
 	def onOneSyringePress(self):
@@ -147,6 +156,8 @@ class mainGUI:
 		self.oneSyringe.config(relief = SUNKEN, background = 'green2')
 		self.twoSyringe.config(relief = RAISED, background = 'SystemButtonFace')
 		self.threeSyringe.config(relief = RAISED, background = 'SystemButtonFace')
+		Goldilocks.gold.num_syringe  = 1
+		# Goldilocks.gold.syringe_pump_I()
 		print("Syringes: " + str(num_syringe))
 
 	def onTwoSyringePress(self):
@@ -179,16 +190,33 @@ class mainGUI:
 		self.s1Speed_box.insert(0, "Type in LED number")
 		# self.ledID_Button = Button(ledFrame, text = "Set LED", command = self._on_ledID_button)
 		# self.ledID_Button.pack()
+		return s1Speed_box
 
 	def onStartFormulationPress(self):
-		print("Starting Formulation")
-		thread.start_new_thread(self.Goldilocks, ())
+		while stop_pressed == False:
+			print("Starting Formulation")
+
+			if num_syringe == 1:
+				print("Testing: 1 syringe")
+			elif num_syringe == 2:
+				print("Testing: 2 syringes")
+			elif num_syringe == 3:
+				print("Testing: 3 syringes")
+			else:
+				print("Error, select number of syringes ")
+
+			# thread.start_new_thread(Goldilocks.gold.do_formulation(), ())
 
 	def onStopFormulationPress(self):
+		stop_pressed = True
+		Goldilocks.gold.request_stop()
 		print("Stopping")
 
 if __name__ == "__main__":
 
+	# thread.start_new_thread(Goldilocks.gold.do_formulation(), ())
+
 	root = Tk()
 	main_GUI = mainGUI(root)
+
 	root.mainloop()
